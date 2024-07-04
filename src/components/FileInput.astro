@@ -1,0 +1,55 @@
+Character Names:<br>
+<input class="charNames" type="text" placeholder="John, Michael, Stacy">
+<br><br>
+<input class="fileInput" type="file">
+<button class="processAndDownload">Clean and Download!</button>
+
+<script>
+    const fileInput = document.querySelector('.fileInput');
+    const processButton = document.querySelector('.processAndDownload');
+
+    // Handle clicks on each button.
+    fileInput.addEventListener('change', handleFileChange);
+
+    processButton.addEventListener('click', processAndDownload);
+
+    let modifiedContent = ''; // Variable to store modified content
+
+    function handleFileChange(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            const fileContent = e.target.result;
+            console.log("File content:", fileContent);
+
+            modifiedContent = fileContent
+                .replace(/^\[\d{2}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[info\] /gm, '')
+                .replace(/^.*is typing\.\.\..*\r?\n?/gm, '')
+                .replace(/Got message from server: ChatMessage\{chat=[^,]+, author='[^']+', text=/g, '');
+
+            console.log("Modified content:", modifiedContent);
+            this.modifiedContent = modifiedContent;
+        };
+
+        reader.readAsText(file);
+    }
+
+    function processAndDownload() {
+        if (modifiedContent) {
+            const blob = new Blob([modifiedContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'modified_file.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } else {
+            console.error('No modified content to download.');
+        }
+    }
+</script>
