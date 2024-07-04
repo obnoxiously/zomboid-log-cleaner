@@ -7,36 +7,43 @@ Character Names:<br>
 <script>
     const fileInput = document.querySelector('.fileInput');
     const processButton = document.querySelector('.processAndDownload');
+    const charNamesInput = document.querySelector('input.charNames');
 
     // Handle clicks on each button.
     fileInput.addEventListener('change', handleFileChange);
-
     processButton.addEventListener('click', processAndDownload);
 
-    let modifiedContent = ''; // Variable to store modified content
+    let originalContent = ''; // Variable to store original file content
 
     function handleFileChange(event) {
         const file = event.target.files[0];
         const reader = new FileReader();
 
         reader.onload = (e) => {
-            const fileContent = e.target.result;
-            console.log("File content:", fileContent);
-
-            modifiedContent = fileContent
-                .replace(/^\[\d{2}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[info\] /gm, '')
-                .replace(/^.*is typing\.\.\..*\r?\n?/gm, '')
-                .replace(/Got message from server: ChatMessage\{chat=[^,]+, author='[^']+', text=/g, '');
-
-            console.log("Modified content:", modifiedContent);
-            this.modifiedContent = modifiedContent;
+            originalContent = e.target.result;
+            console.log("Original file content:", originalContent);
         };
 
         reader.readAsText(file);
     }
 
     function processAndDownload() {
-        if (modifiedContent) {
+        if (originalContent) {
+            // Get character names from input and store in array
+            const charNames = charNamesInput.value.split(',').map(name => name.trim());
+
+            // Create regex pattern to match any of the character names
+            const charNamesPattern = charNames.join('|');
+            console.log("Character names:", charNamesPattern);
+
+            // Use regex to strip timestamp from each line
+            let modifiedContent = originalContent
+                .replace(/^\[\d{2}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[info\] /gm, '')
+                .replace(/^.*is typing\.\.\..*\r?\n?/gm, '')
+                .replace(new RegExp(`^.*(?=${charNamesPattern})`, "gm"), '');
+
+            console.log("Modified content:", modifiedContent);
+
             const blob = new Blob([modifiedContent], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
 
@@ -49,7 +56,7 @@ Character Names:<br>
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } else {
-            console.error('No modified content to download.');
+            console.error('No file content to process.');
         }
     }
 </script>
