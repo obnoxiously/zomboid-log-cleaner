@@ -38,9 +38,22 @@ Character Names:<br>
 
             // Use regex to strip timestamp from each line
             let modifiedContent = originalContent
+                // Remove lines that start with a timestamp followed by '[info]'
                 .replace(/^\[\d{2}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[info\] /gm, '')
+                // Remove lines that indicate someone is typing
                 .replace(/^.*is typing\.\.\..*\r?\n?/gm, '')
-                .replace(new RegExp(`^.*(?=${charNamesPattern})`, "gm"), '');
+                // Remove everything up to and including the specified character names
+                .replace(new RegExp(`^.*(?=${charNamesPattern})`, "gm"), '')
+                // Remove trailing question marks and a single space after the specified character names
+                .replace(new RegExp(`(?<=\\b(${charNamesPattern})\\b)\\?*\\s+`, "g"), ' ')
+                // Remove the trailing '}. at the end of lines
+                .replace(/'}\.$/gm, '')
+                // Remove everything up to and including '?** ' (with two spaces) in lines
+                .replace(/^.*\?\*\*  /gm, '')
+                // Remove lines that contain '[Tip]'
+                .replace(/^.*\[Tip\].*\r?\n?/gm, '')
+                // Remove the initial lines containing chat system initialization messages
+                .replace(/^Init chat system\.\.\.\.\r?\nMode: multiplayer\.\r?\nChat owner: .+\r?\n/, '');
 
             console.log("Modified content:", modifiedContent);
 
